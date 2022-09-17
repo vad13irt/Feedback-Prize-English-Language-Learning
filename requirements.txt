@@ -1,0 +1,4 @@
+tqdm==4.64.0
+googletrans==4.0.0rc1
+nltk==3.6.2
+torch==1.11.0
