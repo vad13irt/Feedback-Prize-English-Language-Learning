@@ -1,5 +1,6 @@
-numpy==1.23.0
-torch==1.11.0
 nltk==3.6.2
-tqdm==4.64.0
+flashtext==2.7
 googletrans==4.0.0rc1
+contractions==0.1.72
+torch==1.11.0
+numpy==1.23.0
