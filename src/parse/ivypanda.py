@@ -27,7 +27,7 @@ def get_essay_info(url, headers=HEADERS, parser=PARSER, sep="\n\n", **response_a
         "text": text,
     }
 
-def get_page_essays(url, headers=HEADERS, parser=PARSER, verbose=10, **essay_args):
+def get_page_essays(url, headers=HEADERS, parser=PARSER, verbose=10, n_jobs=-1, **essay_args):
     print(f"Parsing '{url}'")
 
     response = requests.get(url, headers=headers)
@@ -36,6 +36,7 @@ def get_page_essays(url, headers=HEADERS, parser=PARSER, verbose=10, **essay_arg
     essays_blocks = soup.find_all(class_="article--list")
 
     essays = []
+
     iterator = tqdm(essays_blocks, total=len(essays_blocks))
     for essay_block in iterator:
         essay_url = essay_block.find(class_="article__heading-link").get("href")
