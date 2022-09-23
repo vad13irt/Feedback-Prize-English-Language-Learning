@@ -1,18 +1,20 @@
 import requests
-from bs4 import BeautifulSoup
 import pandas as pd
 from tqdm import tqdm
+from bs4 import BeautifulSoup
 from argparse import ArgumentParser
+from typing import Dict, Any, List
+
+from .constants import HEADERS, PARSER
 
 
-HEADERS = {
-    "User-Agent": 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36',
-}
-
-PARSER = "html.parser"
-
-
-def get_essay_info(url, headers=HEADERS, parser=PARSER, sep="\n\n", **response_args):
+def get_essay_info(
+    url: str, 
+    headers: Dict[str, Any] = HEADERS, 
+    parser: str = PARSER, 
+    sep: str = "\n\n", 
+    **response_args,
+) -> Dict[str, str]:
     response = requests.get(url=url, headers=headers, **response_args)
     soup = BeautifulSoup(response.text, parser)
 
@@ -27,7 +29,12 @@ def get_essay_info(url, headers=HEADERS, parser=PARSER, sep="\n\n", **response_a
         "text": text,
     }
 
-def get_page_essays(url, headers=HEADERS, parser=PARSER, verbose=10, n_jobs=-1, **essay_args):
+def get_page_essays(
+    url: str, 
+    headers: Dict[str, Any] = HEADERS, 
+    parser: str = PARSER, 
+    **essay_args,
+) -> List[Dict[str, Any]]:
     print(f"Parsing '{url}'")
 
     response = requests.get(url, headers=headers)
@@ -36,10 +43,9 @@ def get_page_essays(url, headers=HEADERS, parser=PARSER, verbose=10, n_jobs=-1, 
     essays_blocks = soup.find_all(class_="article--list")
 
     essays = []
-
-    iterator = tqdm(essays_blocks, total=len(essays_blocks))
-    for essay_block in iterator:
-        essay_url = essay_block.find(class_="article__heading-link").get("href")
+    for essay_block in tqdm(essays_blocks, total=len(essays_blocks)):
+        essay_heading_element = essay_block.find(class_="article__heading-link")
+        essay_url = essay_heading_element.get("href")
         essay = get_essay_info(url=essay_url, headers=headers, parser=parser, **essay_args)
         essays.append(essay)
 
