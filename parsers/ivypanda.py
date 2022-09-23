@@ -1,3 +1,7 @@
+# TO-DO
+# subject
+
+
 import requests
 import pandas as pd
 from tqdm import tqdm
@@ -5,7 +9,7 @@ from bs4 import BeautifulSoup
 from argparse import ArgumentParser
 from typing import Dict, Any, List
 
-from .constants import HEADERS, PARSER
+from constants import HEADERS, PARSER
 
 
 def get_essay_info(
@@ -26,7 +30,7 @@ def get_essay_info(
     return {
         "url": url,
         "topic": topic,
-        "text": text,
+        "text": text, 
     }
 
 def get_page_essays(
