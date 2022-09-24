@@ -1,7 +1,3 @@
-# TO-DO
-# subject
-
-
 import requests
 import pandas as pd
 from tqdm import tqdm
@@ -19,20 +15,40 @@ def get_essay_info(
     parser: str = PARSER, 
     sep: str = "\n\n", 
     **response_args,
-) -> Dict[str, str]:
+) -> Dict[str, Any]:
+
     response = requests.get(url=url, headers=headers, **response_args)
     soup = BeautifulSoup(response.text, parser)
 
     topic = soup.find(class_="article__heading").text
+    
     text_elements = soup.find(class_="article__content").findAll("p")
     text_parts = [text_element.text for text_element in text_elements]
     text = sep.join(text_parts)
+
+    details_element = soup.find(class_="paper-details-table__tbody")
+    names = details_element.findAll("th")
+    description_elements = details_element.findAll("td")
+    
+    subject, type_ = None, None
+    for name, description_element in zip(names, description_elements):
+        name = name.text.strip()
+        if name == "Type":
+            type_ = description_element.text.strip().replace("\n", ", ")
+        elif name == "Subjects":
+            subjects_elements = description_element.findAll("a")
+            subject = [
+                subject_element.text.strip() for subject_element in subjects_elements
+            ]
 
     return {
         "url": url,
         "topic": topic,
         "text": text, 
+        "subject": subject,
+        "type": type_,
     }
+
 
 def get_page_essays(
     url: str, 
@@ -57,12 +73,12 @@ def get_page_essays(
     return essays
 
 def parse(
-    url, 
-    output_path="ivypanda_essays.csv", 
-    headers=HEADERS, 
-    parser=PARSER, 
-    pagination_page_format = "{url}/page/{page}",
-):
+    url: str, 
+    output_path: str="ivypanda_essays.csv", 
+    headers: Dict[str, Any] = HEADERS, 
+    parser: str = PARSER, 
+    pagination_page_format: str = "{url}/page/{page}",
+) ->  None:
     response = requests.get(url=url, headers=headers)
     soup = BeautifulSoup(response.text, parser)
 

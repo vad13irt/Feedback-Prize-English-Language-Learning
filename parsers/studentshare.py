@@ -223,6 +223,7 @@ def parse(
     # parsing
     essays = []
     for page in range(num_pagination_pages):
+        print(f"Parsing {page} page")
         essays_blocks = driver.find_elements_by_class_name("c_p")
 
         pagination_essays = []
