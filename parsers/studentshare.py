@@ -1,109 +1,140 @@
 import requests
 from bs4 import BeautifulSoup
 from selenium import webdriver
+from selenium.webdriver.common.by import By
 from argparse import ArgumentParser
 from IPython.display import display
+from typing import Dict, Any, Optional, List
 from tqdm import tqdm
 import pandas as pd
+import warnings
 import re
 import time
 
 from constants import PARSER, HEADERS
 
 
-def get_essay_info(url, parser=PARSER, headers=HEADERS, sep="\n\n"):
+warnings.simplefilter("ignore")
+
+
+def get_essay_info(
+    url: str, 
+    parser: str = PARSER, 
+    headers: Dict[str, Any] = HEADERS, 
+    sep: str = "\n\n",
+) -> Dict[str, Any]:
     response = requests.get(url=url, headers=headers)
     soup = BeautifulSoup(response.text, parser)
     
-    element = soup.find(class_="extract_sample_bl")
+    if response.status_code != 404:
+        element = soup.find(class_="extract_sample_bl")
 
-    topic = element.find("h2").text
-    topic_pattern = r'"(.*?)"'
-    topic = re.findall(topic_pattern, topic)[0]
-    
-    text_element = element.find(class_="content")
-    text_parts_elements = text_element.findAll("p")
-    text_parts = [text_art_element.text for text_art_element in text_parts_elements]
-    text = sep.join(text_parts)
-    
-    essay_info_element = soup.find(class_="info_document")
-    essay_info_elements = essay_info_element.findAll("a")
-    essay_info_texts = [essay_info_element.text for essay_info_element in essay_info_elements]
-    subject, type_, level, *_ = essay_info_texts
-    
-    return {
-        "url": url,
-        "topic": topic,
-        "text": text,
-        "subject": subject,
-        "type": type_,
-        "level": level,
-    }
+        topic = element.find("h2").text
+        topic_pattern = r'"(.*?)"'
+        topic = re.findall(topic_pattern, topic)[0]
+        
+        text_element = element.find(class_="content")
+        text_parts_elements = text_element.findAll("p")
+        text_parts = [text_art_element.text for text_art_element in text_parts_elements]
+        text = sep.join(text_parts)
+        
+        essay_info_element = soup.find(class_="info_document")
+        essay_info_elements = essay_info_element.findAll("a")
+        essay_info_texts = [essay_info_element.text for essay_info_element in essay_info_elements]
+        subject, type_, level, *_ = essay_info_texts
+        
+        return {
+            "url": url,
+            "topic": topic,
+            "text": text,
+            "subject": subject,
+            "type": type_,
+            "level": level,
+        }
+
+    return None
 
 
 def set_filter_inputs(
     driver, 
-    xpath, 
-    values=[], 
-    value_delay=3,
-    menu_delay=5, 
-    menu_xpath='//*[@id="ui-id-1"]',
-):
-    input_element = driver.find_element_by_xpath(xpath)
+    xpath: str, 
+    values: List[str] = [], 
+    value_delay: float = 3.0,
+    menu_delay: float = 5.0, 
+    menu_xpath: str = '//*[@id="ui-id-1"]',
+) -> None:
+    input_element = driver.find_element(by=By.XPATH, value=xpath)
     for value in values:
-        time.sleep(value_delay)
+        driver.implicitly_wait(value_delay)
         input_element.send_keys(value)
         time.sleep(menu_delay)
         
-        menu_element = driver.find_element_by_xpath(menu_xpath)
-        menu_options = menu_element.find_elements_by_tag_name("li")
+        menu_element = driver.find_element(by=By.XPATH, value=menu_xpath)
+        menu_options = menu_element.find_elements(by=By.TAG_NAME, value="li")
 
         for menu_option in menu_options:
             if menu_option.text == value:
                 menu_option.click()
-                time.sleep(value_delay)
+                driver.implicitly_wait(value_delay)
 
-def set_filter_choices(driver, class_name, values=[], value_delay=2):
-    choices_element = driver.find_element_by_class_name(class_name)
-    buttons = choices_element.find_elements_by_tag_name("button")
+def set_filter_choices(
+    driver, 
+    class_name: str, 
+    values: List[str] = [], 
+    value_delay: float = 2.0,
+) -> None:
+    choices_element = driver.find_element(by=By.CLASS_NAME, value=class_name)
+    buttons = choices_element.find_elements(by=By.TAG_NAME, value="button")
     for value in values:
         for button in buttons:
             if button.text == value:
                 driver.execute_script("arguments[0].click();", button)
-                time.sleep(value_delay)
+                driver.implicitly_wait(value_delay)
 
 
-def set_filter_interval_inputs(driver, min_xpath, max_xpath, min_value=None, max_value=None, delay=3):
+def set_filter_interval_inputs(
+    driver, 
+    min_xpath: str, 
+    max_xpath: str, 
+    min_value: Optional[int] = None, 
+    max_value: Optional[int] = None, 
+    delay: float = 3.0,
+) -> None:
     if min_value is not None:
-        min_value_input = driver.find_element_by_xpath(min_xpath)
+        min_value_input = driver.find_element(by=By.XPATH, value=min_xpath)
         min_value_input.send_keys(str(min_value))
-        time.sleep(delay)
+        driver.implicitly_wait(delay)
 
     if max_value is not None:
-        max_value_input = driver.find_element_by_xpath(max_xpath)
+        max_value_input = driver.find_element(by=By.XPATH, value=max_xpath)
         max_value_input.send_keys(str(max_value))
-        time.sleep(delay)
+        driver.implicitly_wait(delay)
 
 
 def filter_results(
     driver, 
-    document_types=None, 
-    min_pages=None, 
-    max_pages=None, 
-    subjects=None, 
-    downloads=None, 
-    min_amount_of_words=None, 
-    max_amount_of_words=None, 
-    levels=None, 
-):  
+    document_types:Optional[List[str]] = None, 
+    min_pages: Optional[int] = None, 
+    max_pages: Optional[int] = None, 
+    subjects: Optional[int] = None, 
+    downloads: Optional[List[str]] = None, 
+    min_amount_of_words: Optional[int] = None, 
+    max_amount_of_words: Optional[int] = None, 
+    levels: Optional[List[str]] = None, 
+) -> None:  
 
     # openning all settings
-    filter_element = driver.find_element_by_class_name("filtr_container")
-    unwrap_elements = filter_element.find_elements_by_class_name("section_filtr_bl")
+    filter_element = driver.find_element(by=By.CLASS_NAME, value="filtr_container")
+    unwrap_elements = filter_element.find_elements(by=By.CLASS_NAME, value="section_filtr_bl")
+    unwrap_elements = [
+        unwrap_element.find_element(by=By.CLASS_NAME, value="title") for unwrap_element in unwrap_elements
+    ]
 
     for unwrap_element in unwrap_elements:
-        unwrap_element.click()
+        driver.execute_script("arguments[0].click();", unwrap_element)
         time.sleep(2)
+
+    time.sleep(3)
 
     if document_types is not None:
         set_filter_inputs(
@@ -151,47 +182,68 @@ def filter_results(
             values=levels,
         )
 
-    apply_button_element = driver.find_element_by_xpath('//*[@id="filters-form"]/button[1]')
+    apply_button_element = driver.find_element(by=By.XPATH, value='//*[@id="filters-form"]/button[1]')
     driver.execute_script("arguments[0].click();", apply_button_element)
 
 
-def login(driver, email, password, url="https://studentshare.org/login", loading_page_delay=5, input_delay=3):
+def login(
+    driver, 
+    email: str, 
+    password: str, 
+    url: str = "https://studentshare.org/login", 
+    loading_page_delay: float = 5.0, 
+    input_delay: float = 3.0,
+) -> None:
     driver.get(url)
     time.sleep(loading_page_delay)
     
     # email
-    email_input_element = driver.find_element_by_xpath('//*[@id="loginform-email"]')
+    email_input_element = driver.find_element(by=By.XPATH, value='//*[@id="loginform-email"]')
     email_input_element.send_keys(email)
     time.sleep(input_delay)    
 
     # password
-    password_input_element = driver.find_element_by_xpath('//*[@id="loginform-password_hash"]')
+    password_input_element = driver.find_element(by=By.XPATH, value='//*[@id="loginform-password_hash"]')
     password_input_element.send_keys(password)
     time.sleep(input_delay)    
 
     # checkboxes
-    checkboxes_element = driver.find_element_by_xpath('//*[@id="sign_in"]/div/div/div/div[1]/div[1]/p/label')
+    checkboxes_element = driver.find_element(by=By.XPATH, value='//*[@id="sign_in"]/div/div/div/div[1]/div[1]/p/label')
     checkboxes_element.click()
     time.sleep(input_delay)
 
     # login button
-    login_button_element = driver.find_element_by_xpath('//*[@id="sign_in"]/div/div/div/div[1]/input')
+    login_button_element = driver.find_element(by=By.XPATH, value='//*[@id="sign_in"]/div/div/div/div[1]/input')
     login_button_element.click()
     time.sleep(input_delay)
 
 
+def get_essays(driver) -> List[Dict[str, Any]]:
+    essays = []
+    essays_blocks = driver.find_elements(by=By.CLASS_NAME, value="c_p")
+    for essay_block in tqdm(essays_blocks, total=len(essays_blocks)):
+        essay_content = essay_block.find_element(by=By.CLASS_NAME, value="product_content")
+        essay_url_element = essay_content.find_element(by=By.TAG_NAME, value="a")
+        essay_url = essay_url_element.get_attribute("href")
+        essay = get_essay_info(url=essay_url)
+
+        if essay is not None:
+            essays.append(essay)
+        
+    return essays
+
 def parse(
-    chrome_driver_path, 
-    url, 
-    window_width=1980,
-    window_height=1280,
-    email=None, 
-    password=None,
-    output_path="studentshare_essays.csv",
-    loading_page_delay=10, 
-    loading_results_delay=10,
+    chrome_driver_path: str, 
+    url: str, 
+    window_width: int = 1980,
+    window_height: int = 1280,
+    email: Optional[str] = None, 
+    password: Optional[str] = None,
+    output_path: str = "studentshare_essays.csv",
+    loading_page_delay: float = 10.0, 
+    loading_results_delay: float = 10.0,
     **filter_args,
-):
+) -> None:
     driver = webdriver.Chrome(chrome_driver_path)
     driver.set_window_size(window_width, window_height)    
 
@@ -208,38 +260,37 @@ def parse(
     time.sleep(loading_results_delay)
 
     # found essays
-    found_essays_text = driver.find_element_by_class_name("result_item").text
-    pattern = "results of (.*) items"
-    result = re.search(pattern, found_essays_text)
+    found_essays_text = driver.find_element(by=By.CLASS_NAME, value="result_item").text
+    result = re.search("results of (.*) items", found_essays_text)
     found_essays = int(result.group(1))
     print(f"Found {found_essays} essays")
 
     # num pagination pages
-    pagination_block = driver.find_element_by_class_name("pagination")
-    pagination_elements = pagination_block.find_elements_by_tag_name("a")
+    pagination_block = driver.find_element(by=By.CLASS_NAME, value="pagination")
+    pagination_elements = pagination_block.find_elements(by=By.TAG_NAME, value="a")
     num_pagination_pages = int(pagination_elements[-2].text)
     print(f"Num pages: {num_pagination_pages}")
     
     # parsing
     essays = []
-    for page in range(num_pagination_pages):
+    stop = False
+    page = 1
+    while not stop:
         print(f"Parsing {page} page")
-        essays_blocks = driver.find_elements_by_class_name("c_p")
-
-        pagination_essays = []
-        for essay_block in tqdm(essays_blocks, total=len(essays_blocks)):
-            essay_content = essay_block.find_element_by_class_name("product_content")
-            essay_url_element = essay_content.find_element_by_tag_name("a")
-            essay_url = essay_url_element.get_attribute("href")
-            essay = get_essay_info(url=essay_url)
-            pagination_essays.append(essay)
-        
+        pagination_essays = get_essays(driver)
         essays.extend(pagination_essays)
         
+        pagination_block = driver.find_element(by=By.CLASS_NAME, value="pagination")
+        pagination_elements = pagination_block.find_elements(by=By.TAG_NAME, value="li")
         next_page_button_element = pagination_elements[-1]
+
         if next_page_button_element.get_attribute("class") != "next disabled":
-            driver.refresh()
-            next_page_button_element.click()
+            next_page_button = next_page_button_element.find_element(by=By.TAG_NAME, value="a")
+            driver.execute_script("arguments[0].click();", next_page_button)
+        else:
+            stop = True
+
+        page += 1
 
         time.sleep(loading_page_delay)
 

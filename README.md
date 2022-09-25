@@ -2,6 +2,7 @@
 
 ### IvyPanda
 https://ivypanda.com/essays/
+
 Number of essays: ~85k
 #### Usage
 ```
@@ -13,7 +14,8 @@ Number of essays: ~85k
 ```
 
 ### StudentShare
-https://studentshare.org/free-essays
+https://studentshare.org/free-essays/
+
 Number of essays: ~33.5k
 
 #### Usage
@@ -24,20 +26,21 @@ Number of essays: ~33.5k
 ```
 
 #### essays.csv
-https://www.kaggle.com/datasets/manjarinandimajumdar/essayscsv
+https://www.kaggle.com/datasets/manjarinandimajumdar/essayscsv/
+
 Number of essays: ~2.5k
 
 
 # Requirements
-- nltk==3.6.2
-- googletrans==4.0.0rc1
-- tqdm==4.64.0
-- pandas==1.1.3
-- selenium==3.141.0
-- numpy==1.23.0
-- requests==2.27.1
+- nltk==3.7
+- numpy==1.23.3
 - flashtext==2.7
-- torch==1.11.0
 - contractions==0.1.72
+- requests==2.28.1
+- torch==1.12.1
+- googletrans==4.0.0rc1
+- tqdm==4.64.1
+- pandas==1.5.0
 - beautifulsoup4==4.11.1
 - ipython==8.5.0
+- selenium==4.4.3
