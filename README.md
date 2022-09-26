@@ -3,7 +3,7 @@
 ### IvyPanda
 https://ivypanda.com/essays/
 
-Number of essays: ~85k
+Number of essays: ~93k
 #### Usage
 ```
 >>> python parsers/ivypanda.py --url "https://ivypanda.com/essays/pages/1-page-essay-examples/" --output_path "ivypanda_1pages_essays.csv"
@@ -11,6 +11,7 @@ Number of essays: ~85k
 >>> python parsers/ivypanda.py --url "https://ivypanda.com/essays/pages/3-pages-essay-examples/" --output_path "ivypanda_3pages_essays.csv"
 >>> python parsers/ivypanda.py --url "https://ivypanda.com/essays/pages/4-pages-essay-examples/" --output_path "ivypanda_4pages_essays.csv"
 >>> python parsers/ivypanda.py --url "https://ivypanda.com/essays/pages/5-pages-essay-examples/" --output_path "ivypanda_5pages_essays.csv"
+>>> python parsers/ivypanda.py --url "https://ivypanda.com/essays/pages/6-pages-essay-examples/" --output_path "ivypanda_6pages_essays.csv"
 ```
 
 ### StudentShare
@@ -22,7 +23,7 @@ Number of essays: ~33.5k
 1. SignUp - https://studentshare.org/signup
 2. Add password - https://studentshare.org/user/profile -> Change password
 ```
->>> python parsers/studentshare.py --url "https://studentshare.org/free-essays" --chrome_driver_path "<chrome_driver_path>" --document_types "Essay" "Scholarship Essay" "Admission/Application Essay" --levels "College" "High School" "Undergraduate" --max_pages 5 --email "<email>" --password "<password>" --output_path "studentshare_essays.csv"
+>>> python parsers/studentshare.py --url "https://studentshare.org/free-essays" --chrome_driver_path "<chrome_driver_path>" --document_types "Essay" "Scholarship Essay" "Admission/Application Essay" --levels "College" "High School" "Undergraduate" --max_pages 6 --email "<email>" --password "<password>" --output_path "studentshare_essays.csv"
 ```
 
 #### essays.csv

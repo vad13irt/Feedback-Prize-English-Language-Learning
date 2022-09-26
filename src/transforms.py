@@ -1,9 +1,10 @@
 from googletrans import Translator
-from typing import List, Tuple, Union, Optional
+from typing import List, Union, Optional
 from collections import Iterable
-from nltk.tokenize import sent_tokenize
+from nltk.tokenize import sent_tokenize, word_tokenize
 import numpy as np
-import random
+import string
+import math
 import time
 
 
@@ -142,49 +143,51 @@ class GoogleTranslateBackTranslation(Transform):
         return transformed_text
 
 
-class CropTransform(Transform):
-    def __init__(
-        self, 
-        size: Tuple[int, int] = (1, 1), 
-        min_sentences: int = 1, 
-        p: float = 0.5,
-    ) -> None:
+class CutOut(Transform):
+    def __init__(self, level: str = "word", fraction: float = 0.01, p: float = 0.5):
         super().__init__(p)
         
-        self.size = size
-        self.min_sentences = min_sentences
+        self.level = level
+        self.fraction = fraction
+        self.p = p
+        
+        if self.level not in ("word", "sentence"):
+            raise ValueError(f"`level` must be one of ['word', 'sentence'], but given {self.level}")
+            
+        if self.level == "word":
+            self.__split_func = word_tokenize
+        elif self.level == "sentence":
+            self.__split_func = sent_tokenize
         
     def transform(self, text: str) -> str:
-        sentences = sent_tokenize(text)
-        num_sentences = len(sentences)
-        index = random.randint(0 + self.min_sentences, num_sentences - 1 - self.min_sentences)
-
-        left_width, right_width = self.size
-        left_width, right_width = left_width + 1, right_width + 1
-        left_index = min(0, index - left_width)
-        right_index = min(index + right_width, num_sentences - 1)
-
-        sentences = sentences[left_index:right_index]
-        text = " ".join(sentences)
-
-        return text
-
-
-class SentenceRemoveTransform(Transform):
-    def __init__(self, num_sentences: int = 1, p: float = 0.5):
-        super().__init__(p)
+        segments = np.array(self.__split_func(text))
+        num_segments = len(segments)
+        num_cutout_segments = math.ceil(num_segments * self.fraction)
+        cutout_segments = np.random.choice(a=range(0, num_segments), size=num_cutout_segments, replace=False)
+        segments = np.delete(segments, cutout_segments)
+        transformed_text = join_text_parts(segments)
         
-        self.num_sentences = num_sentences
-        
-    def transform(self, text: str) -> str:
-        sentences = sent_tokenize(text)
-        num_sentences_ = len(sentences)
-        
-        if num_sentences_ > self.num_sentences:
-            remove_indexes = np.random.choice(range(num_sentences_), size=self.num_sentences, replace=False)
-            sentences = np.delete(sentences, remove_indexes)
-            text = " ".join(sentences)
-        else:
-            text = ""
-        
-        return text
+        return transformed_text
+
+def join_text_parts(parts: List[str], punctuations: Optional[Union[Iterable, str]] = None) -> str:
+    """
+    Smart join of text's parts
+    
+    Basic join: ['It', "'s", "example", "!"] -> "It 's example !"
+    Smart join: ['It', "'s", "example", "!"] -> "It's example!"
+    """
+    
+    if punctuations is None:
+        punctuations = string.punctuation 
+    
+    text = ""
+    for part in parts:
+        sep = " "
+        if part[0] in punctuations:
+            sep = ""
+            
+        text += sep + part
+    
+    text = text.strip()
+    
+    return text

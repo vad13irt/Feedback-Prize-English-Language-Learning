@@ -22,8 +22,11 @@ def get_essay_info(
 
     topic = soup.find(class_="article__heading").text
     
-    text_elements = soup.find(class_="article__content").findAll("p")
-    text_parts = [text_element.text for text_element in text_elements]
+    text_elements = soup.find(class_="article__content").findChildren(recursive=False)
+    text_parts = [
+        text_element.text for text_element in text_elements if "div" not in text_element.name
+    ]
+
     text = sep.join(text_parts)
 
     details_element = soup.find(class_="paper-details-table__tbody")
