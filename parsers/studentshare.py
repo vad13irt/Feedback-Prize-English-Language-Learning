@@ -23,10 +23,10 @@ def get_essay_info(
     headers: Dict[str, Any] = HEADERS, 
     sep: str = "\n\n",
 ) -> Dict[str, Any]:
-    response = requests.get(url=url, headers=headers)
-    soup = BeautifulSoup(response.text, parser)
-    
-    if response.status_code != 404:
+    try:
+        response = requests.get(url=url, headers=headers)
+        soup = BeautifulSoup(response.text, parser)
+        
         element = soup.find(class_="extract_sample_bl")
 
         topic = element.find("h2").text
@@ -51,8 +51,8 @@ def get_essay_info(
             "type": type_,
             "level": level,
         }
-
-    return None
+    except:
+        return None
 
 
 def set_filter_inputs(

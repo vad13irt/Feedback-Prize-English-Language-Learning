@@ -2,10 +2,12 @@ from googletrans import Translator
 from typing import List, Union, Optional
 from collections import Iterable
 from nltk.tokenize import sent_tokenize, word_tokenize
+from num2words import num2words
 import numpy as np
 import string
 import math
 import time
+import re
 
 
 class Transform:
@@ -97,7 +99,7 @@ class GoogleTranslateBackTranslation(Transform):
                 translated_text.append(translated_segment)
                 time.sleep(self.segment_delay)
             
-            translated_text = " ".join(translated_text)
+            translated_text = join_text_parts(translated_text)
         else:
             translated_text = self.translate_func(
                 text=text, 
@@ -168,6 +170,39 @@ class CutOut(Transform):
         transformed_text = join_text_parts(segments)
         
         return transformed_text
+
+
+class NumberToWords(Transform):      
+    def __init__(self, level: str = "text", p: float = 0.5):
+        super().__init__(p)
+        self.level = level
+        
+        if self.level not in ("text", "word"):
+            raise ValueError(f"`level` must be one of ['text', 'word'], but given {self.level}")
+            
+    
+    def apply(self, text: str) -> str:
+        if np.random.uniform() < self.p or self.level == "word":
+            text = self.transform(text)
+        
+        return text
+    
+    def transform(self, text: str) -> str:
+        numbers = re.findall('[0-9]+', text)
+        
+        if len(numbers) > 0:
+            words = word_tokenize(text)
+            new_words = []
+            for word in words:
+                if word.isdigit() and (np.random.uniform() < self.p or self.level == "text"):
+                    word = num2words(int(word))
+                    
+                new_words.append(word)
+            
+            text = join_text_parts(new_words)
+            
+        return text    
+
 
 def join_text_parts(parts: List[str], punctuations: Optional[Union[Iterable, str]] = None) -> str:
     """
