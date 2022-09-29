@@ -1,31 +1,46 @@
-from flashtext import KeywordProcessor
 from collections import Iterable
 from typing import Union, List
-import contractions
+import pandas as pd
+import numpy as np
+import copy
 
 
-class Preprocessor:
-    def __init__(self) -> None:
-        contractions_dict = contractions.contractions_dict
-        contractions_dict.update(contractions.slang_dict)
+def basic_selection(
+    data_frame: pd.DataFrame, 
+    min_words: int = 150, 
+    max_words: int = 1700, 
+    types: Union[str, List[str]] = "Essay",
+    text_column: str = "full_text",
+    type_column: str = "type", 
+    drop_extra_columns: bool = True,
+) -> pd.DataFrame:
+    
+    data_frame = copy.deepcopy(data_frame)
         
-        reversed_contractions_dict = {v: k for k, v in contractions_dict.items()}
-        
-        self.contractions_dict = {k: [v] for k, v in contractions_dict.items()}
-        self.reversed_contractions_dict = {k: [v] for k, v in reversed_contractions_dict.items()}
-        
-        self.keyword_processor = KeywordProcessor()
-        self.keyword_processor.add_keywords_from_dict(self.reversed_contractions_dict)
-        
-    def preprocess(self, text: str) -> str:
-        text = self.keyword_processor.replace_keywords(text)
-        
-        return text
-        
-    def __call__(self, text: Union[str, List[str]]) -> Union[str, List[str]]:
-        if isinstance(text, str):
-            preprocessed_text = self.preprocess(text)
-        elif isinstance(text, Iterable):
-            preprocessed_text = [self.preprocess(t) for t in text]
-            
-        return preprocessed_text
+    # length selection
+    data_frame["num_words"] = data_frame[text_column].apply(lambda text: len(str(text).split()))
+    words_threshold_mask = (min_words < data_frame["num_words"]) & (data_frame["num_words"] < max_words)
+    data_frame = data_frame[words_threshold_mask]
+    
+    # type selection
+    if isinstance(types, str):
+        types_mask = data_frame[type_column].str.contains(types)
+    elif isinstance(types, Iterable):
+        types_mask = data_frame[type_column].isin(types)
+    else:
+        types_mask = np.ones(shape=data_frame.shape[0], dtype=bool)
+    
+    na_types_mask = data_frame[type_column].isna()
+    
+    selected_data_mask = na_types_mask | types_mask
+    data_frame = data_frame[selected_data_mask]
+    
+    # removing duplicates
+    data_frame = data_frame.drop_duplicates(subset=["full_text"])
+    
+    # dropping extra columns
+    if drop_extra_columns:
+        extra_columns = ["num_words"]
+        data_frame = data_frame.drop(extra_columns, axis=1)
+    
+    return data_frame

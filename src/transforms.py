@@ -1,11 +1,15 @@
 from googletrans import Translator
-from typing import List, Union, Optional
+from typing import List, Union, Optional, Dict
 from collections import Iterable
 from nltk.tokenize import sent_tokenize, word_tokenize
 from num2words import num2words
+import contractions
 import numpy as np
+import requests
+import random
 import string
 import math
+import json
 import time
 import re
 
@@ -202,6 +206,87 @@ class NumberToWords(Transform):
             text = join_text_parts(new_words)
             
         return text    
+
+
+class Accent(Transform):
+    def __init__(self, accent_dict: Optional[Dict[str, str]] = None, p: float = 0.5):
+        super().__init__(p)
+        
+        self.accent_dict = accent_dict
+        
+        if self.accent_dict is None:
+            request_url = "https://raw.githubusercontent.com/hyperreality/American-British-English-Translator/master/data/british_spellings.json"
+            response = requests.get(request_url)
+            self.accent_dict = json.loads(response.text)
+            
+        self.reversed_accent_dict = {v:k for k, v in self.accent_dict.items()}
+            
+    def transform(self, text: str) -> str:
+        dict_index = random.randint(a=0, b=1)
+        accent_dict = self.accent_dict if bool(dict_index) else self.reversed_accent_dict
+        
+        for k, v in accent_dict.items():
+            text = text.replace(k, v)
+            
+        return text
+
+class SlangConverter(Transform):
+    def __init__(
+        self, 
+        level: str = "text",
+        slang_dict: Optional[Dict[str, str]] = None, 
+        punctuations: str = ".,:?! ", 
+        p: float = 0.5,
+    ):
+        super().__init__(p)
+        
+        self.slang_dict = slang_dict
+        self.level = level
+        self.punctuations = punctuations
+        
+        if self.level not in ("word", "text"):
+            raise ValueError(f"`level` must be one of ['word', 'text'], but given {self.level}")
+        
+        if self.slang_dict is None:
+            self.slang_dict = contractions.contractions_dict
+            self.slang_dict.update(contractions.slang_dict)
+            
+        self.reversed_slang_dict = {full:slang for slang, full in self.slang_dict.items()}
+    
+    def replace_function(self, match: re.Match, data: Dict[str, str]) -> str:
+        text = match.group(0)
+        punctuation_after = text[-1]
+        punctuation_before = text[0]
+        text = text[1:-1]
+        
+        try:
+            slang = text.strip()
+            full = data[slang]
+        except KeyError:
+            return text
+        
+        return punctuation_before + full + punctuation_after
+            
+    def apply(self, text: str) -> str:
+        if np.random.uniform() < self.p or self.level == "word":
+            text = self.transform(text)
+        
+        return text
+        
+    def transform(self, text: str) -> str:
+        for slang, full in self.slang_dict.items():
+            transformed = False
+            does_apply = (np.random.uniform() < self.p or self.level == "text")
+            if slang in text and does_apply:
+                func = lambda match: self.replace_function(match, data=self.slang_dict)
+                text = re.sub(f"[{self.punctuations}]{slang}[{self.punctuations}]", func, text)
+                transformed = True
+                
+            if full in text and not transformed and does_apply:
+                func = lambda match: self.replace_function(match, data=self.reversed_slang_dict)
+                text = re.sub(f"[{self.punctuations}]{full}[{self.punctuations}]", func, text)
+    
+        return text
 
 
 def join_text_parts(parts: List[str], punctuations: Optional[Union[Iterable, str]] = None) -> str:
