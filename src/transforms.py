@@ -2,6 +2,7 @@ from googletrans import Translator
 from typing import List, Union, Optional, Dict
 from collections import Iterable
 from nltk.tokenize import sent_tokenize, word_tokenize
+from word2number.w2n import word_to_num as words2num
 from num2words import num2words
 import contractions
 import numpy as np
@@ -198,9 +199,15 @@ class NumberToWords(Transform):
             words = word_tokenize(text)
             new_words = []
             for word in words:
-                if word.isdigit() and (np.random.uniform() < self.p or self.level == "text"):
+                does_apply = (np.random.uniform() < self.p or self.level == "text")
+                if word.isdigit() and does_apply:
                     word = num2words(int(word))
-                    
+                elif does_apply:
+                    try:
+                        word = words2num(word)
+                    except ValueError:
+                        pass
+
                 new_words.append(word)
             
             text = join_text_parts(new_words)
@@ -235,6 +242,7 @@ class SlangConverter(Transform):
         self, 
         level: str = "text",
         slang_dict: Optional[Dict[str, str]] = None, 
+        convert_full_to_slang: bool = False,
         punctuations: str = ".,:?! ", 
         p: float = 0.5,
     ):
@@ -243,6 +251,7 @@ class SlangConverter(Transform):
         self.slang_dict = slang_dict
         self.level = level
         self.punctuations = punctuations
+        self.convert_full_to_slang = convert_full_to_slang
         
         if self.level not in ("word", "text"):
             raise ValueError(f"`level` must be one of ['word', 'text'], but given {self.level}")
@@ -282,7 +291,7 @@ class SlangConverter(Transform):
                 text = re.sub(f"[{self.punctuations}]{slang}[{self.punctuations}]", func, text)
                 transformed = True
                 
-            if full in text and not transformed and does_apply:
+            if full in text and not transformed and does_apply and self.convert_full_to_slang:
                 func = lambda match: self.replace_function(match, data=self.reversed_slang_dict)
                 text = re.sub(f"[{self.punctuations}]{full}[{self.punctuations}]", func, text)
     
