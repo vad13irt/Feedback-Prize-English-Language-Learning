@@ -156,3 +156,25 @@ def basic_selection(
         data_frame = data_frame.drop(extra_columns, axis=1)
     
     return data_frame
+
+
+def get_confident_predictions(
+    predictions: np.ndarray, 
+    confidence_threshold: float = 0.1, 
+    return_indexes: bool = False,
+) -> Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]:
+    
+    if not isinstance(predictions, np.ndarray):
+        predictions = np.asarray(predictions)
+        
+    std = np.std(predictions, axis=0)
+    confidence_mask = std < confidence_threshold
+    predictions = predictions[confidence_mask]
+    
+    if return_indexes:
+        indexes = np.arange(len(confidence_mask))
+        indexes = indexes[confidence_mask]
+        
+        return predictions, indexes
+    
+    return predictions

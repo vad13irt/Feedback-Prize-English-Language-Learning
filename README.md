@@ -8,12 +8,12 @@ https://ivypanda.com/essays/
 Number of essays: ~93k
 #### Usage
 ```
->>> python parsers/ivypanda.py --url "https://ivypanda.com/essays/pages/1-page-essay-examples/" --output_path "ivypanda_1pages_essays.csv"
->>> python parsers/ivypanda.py --url "https://ivypanda.com/essays/pages/2-pages-essay-examples/" --output_path "ivypanda_2pages_essays.csv"
->>> python parsers/ivypanda.py --url "https://ivypanda.com/essays/pages/3-pages-essay-examples/" --output_path "ivypanda_3pages_essays.csv"
->>> python parsers/ivypanda.py --url "https://ivypanda.com/essays/pages/4-pages-essay-examples/" --output_path "ivypanda_4pages_essays.csv"
->>> python parsers/ivypanda.py --url "https://ivypanda.com/essays/pages/5-pages-essay-examples/" --output_path "ivypanda_5pages_essays.csv"
->>> python parsers/ivypanda.py --url "https://ivypanda.com/essays/pages/6-pages-essay-examples/" --output_path "ivypanda_6pages_essays.csv"
+>>> python parsers/ivypanda.py --url "https://ivypanda.com/essays/pages/1-page-essay-examples/" --output_path "external_data/ivypanda_1pages_essays.csv"
+>>> python parsers/ivypanda.py --url "https://ivypanda.com/essays/pages/2-pages-essay-examples/" --output_path "external_data/ivypanda_2pages_essays.csv"
+>>> python parsers/ivypanda.py --url "https://ivypanda.com/essays/pages/3-pages-essay-examples/" --output_path "external_data/ivypanda_3pages_essays.csv"
+>>> python parsers/ivypanda.py --url "https://ivypanda.com/essays/pages/4-pages-essay-examples/" --output_path "external_data/ivypanda_4pages_essays.csv"
+>>> python parsers/ivypanda.py --url "https://ivypanda.com/essays/pages/5-pages-essay-examples/" --output_path "external_data/ivypanda_5pages_essays.csv"
+>>> python parsers/ivypanda.py --url "https://ivypanda.com/essays/pages/6-pages-essay-examples/" --output_path "external_data/ivypanda_6pages_essays.csv"
 ```
 
 ### StudentShare
@@ -33,7 +33,6 @@ https://www.kaggle.com/datasets/manjarinandimajumdar/essayscsv/
 
 Number of essays: ~2.5k
 
-
 # Augmentations
 - CutOut
 - NumberToWords
@@ -41,6 +40,14 @@ Number of essays: ~2.5k
 - SlangConverter
 - KeywordReplacer
 
+- Google Translate Back Translation
+```
+>>> python src/transforms/google_translate_back_translation.py --data_frame_path "data/train.csv" --source_language "english" --target_language "french" --output_path "external_data/english_french.csv" --text_column "full_text" 
+>>> python src/transforms/google_translate_back_translation.py --data_frame_path "data/train.csv" --source_language "english" --target_language "deutsch" --output_path "external_data/english_deutsch.csv" --text_column "full_text"  
+>>> python src/transforms/google_translate_back_translation.py --data_frame_path "data/train.csv" --source_language "english" --target_language "italian" --output_path "external_data/english_italian.csv" --text_column "full_text"  
+>>> python src/transforms/google_translate_back_translation.py --data_frame_path "data/train.csv" --source_language "english" --target_language "russian" --output_path "external_data/english_russian.csv" --text_column "full_text" 
+>>> python src/transforms/google_translate_back_translation.py --data_frame_path "data/train.csv" --source_language "english" --target_language "china" --output_path "external_data/english_china.csv" --text_column "full_text"
+```
 
 # Requirements
 - contractions==0.1.72
