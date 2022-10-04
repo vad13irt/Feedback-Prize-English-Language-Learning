@@ -15,10 +15,8 @@ def join_text_parts(parts: List[str], punctuations: Optional[Union[Iterable, str
     
     text = ""
     for part in parts:
-        sep = " "
-        if part[0] in punctuations:
-            sep = ""
-            
+        part = str(part)
+        sep = " " if part[0] not in punctuations else ""  
         text += sep + part
     
     text = text.strip()

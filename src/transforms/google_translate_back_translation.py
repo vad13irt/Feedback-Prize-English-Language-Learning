@@ -7,7 +7,11 @@ from nltk.tokenize import sent_tokenize
 from argparse import ArgumentParser
 from tqdm import tqdm
 import pandas as pd
+import nltk
 import time
+
+
+nltk.download("punkt")
 
 
 class GoogleTranslateBackTranslation(Transform):

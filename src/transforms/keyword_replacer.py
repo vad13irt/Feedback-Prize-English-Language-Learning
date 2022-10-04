@@ -10,7 +10,6 @@ class KeywordReplacer(Transform):
         keywords: Optional[Dict[str, List[str]]],
         level: str = "text", 
         p: float = 0.5, 
-        **keyword_processor_args,
     ):
         super().__init__(p)
         

@@ -41,12 +41,13 @@ Number of essays: ~2.5k
 - KeywordReplacer
 
 - Google Translate Back Translation
+
 ```
 >>> python src/transforms/google_translate_back_translation.py --data_frame_path "data/train.csv" --source_language "english" --target_language "french" --output_path "external_data/english_french.csv" --text_column "full_text" 
->>> python src/transforms/google_translate_back_translation.py --data_frame_path "data/train.csv" --source_language "english" --target_language "deutsch" --output_path "external_data/english_deutsch.csv" --text_column "full_text"  
+>>> python src/transforms/google_translate_back_translation.py --data_frame_path "data/train.csv" --source_language "english" --target_language "german" --output_path "external_data/english_german.csv" --text_column "full_text"  
 >>> python src/transforms/google_translate_back_translation.py --data_frame_path "data/train.csv" --source_language "english" --target_language "italian" --output_path "external_data/english_italian.csv" --text_column "full_text"  
 >>> python src/transforms/google_translate_back_translation.py --data_frame_path "data/train.csv" --source_language "english" --target_language "russian" --output_path "external_data/english_russian.csv" --text_column "full_text" 
->>> python src/transforms/google_translate_back_translation.py --data_frame_path "data/train.csv" --source_language "english" --target_language "china" --output_path "external_data/english_china.csv" --text_column "full_text"
+>>> python src/transforms/google_translate_back_translation.py --data_frame_path "data/train.csv" --source_language "english" --target_language "chinese (traditional)" --output_path "external_data/english_chinese.csv" --text_column "full_text"
 ```
 
 # Requirements
