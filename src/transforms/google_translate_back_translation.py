@@ -9,6 +9,9 @@ from tqdm import tqdm
 import pandas as pd
 import time
 
+import nltk
+nltk.download('punkt')
+
 
 class GoogleTranslateBackTranslation(Transform):
     def __init__(
