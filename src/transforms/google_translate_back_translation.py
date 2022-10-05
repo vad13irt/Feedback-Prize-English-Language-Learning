@@ -119,12 +119,18 @@ if __name__ == "__main__":
     parser.add_argument("--output_path", required=True)
     parser.add_argument("--text_column", required=False, default="text")
     parser.add_argument("--back_translated_column", required=False, default="back_translated_text")
+    parser.add_argument("--delay", required=False, default=1.0)
+    parser.add_argument("--segment_delay", required=False, default=1.0)
+    parser.add_argument("--translations_delay", required=False, default=1.0)
 
     args, unknown_args = parser.parse_known_args()
 
     back_translation = GoogleTranslateBackTranslation(
         source_language=args.source_language, 
         target_language=args.target_language,
+        delay=args.delay,
+        segment_delay=args.segment_delay,
+        translations_delay=args.translations_delay,
         p=1.0,
         **dict(unknown_args),
     )
