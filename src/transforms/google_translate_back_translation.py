@@ -10,6 +10,9 @@ import pandas as pd
 import nltk
 import time
 
+import nltk
+nltk.download('punkt')
+
 
 nltk.download("punkt")
 
